@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin - FastUC</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header>
+  <h1>لوحة Admin - FastUC</h1>
+  <button id="logoutBtn">تسجيل الخروج</button>
+</header>
+
+<main>
+  <h2>طلبات العملاء</h2>
+  <table border="1" id="ordersTable">
+    <thead>
+      <tr>
+        <th>العميل</th>
+        <th>Pubg ID</th>
+        <th>الباقة</th>
+        <th>السعر</th>
+        <th>الحالة</th>
+        <th>تحديث الحالة</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</main>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
+  import { getFirestore, collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCIaWncAaVr4Jezf5rzbCwUza3rtIB1gXw",
+    authDomain: "fastuc-25614.firebaseapp.com",
+    projectId: "fastuc-25614",
+    storageBucket: "fastuc-25614.firebasestorage.app",
+    messagingSenderId: "185121162566",
+    appId: "1:185121162566:web:2a83946819f34650acd147",
+    measurementId: "G-XCY2L13NY0"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const logoutBtn = document.getElementById("logoutBtn");
+  const ordersTable = document.getElementById("ordersTable").querySelector("tbody");
+
+  logoutBtn.addEventListener("click", () => {
+    signOut(auth).then(() => {
+      window.location.href = "index.html";
+    });
+  });
+
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      alert("سجل الدخول أولاً");
+      window.location.href = "index.html";
+    } else {
+      loadOrders();
+    }
+  });
+
+  function loadOrders() {
+    const ordersCol = collection(db, "orders");
+    onSnapshot(ordersCol, snapshot => {
+      ordersTable.innerHTML = "";
+      snapshot.forEach(docSnap => {
+        const data = docSnap.data();
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${data.userId}</td>
+          <td>${data.pubgId}</td>
+          <td>${data.packageId}</td>
+          <td>${data.price}</td>
+          <td>${data.status}</td>
+          <td>
+            <button onclick="updateStatus('${docSnap.id}', 'completed')">تم الشحن</button>
+            <button onclick="updateStatus('${docSnap.id}', 'pending')">قيد الانتظار</button>
+          </td>
+        `;
+        ordersTable.appendChild(tr);
+      });
+    });
+  }
+
+  window.updateStatus = async function(id, status) {
+    await updateDoc(doc(db, "orders", id), { status });
+    alert("تم تحديث الحالة!");
+  }
+</script>
+</body>
+</html>
