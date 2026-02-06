@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>طلباتي - FastUC</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+<header>
+  <h1>طلباتي</h1>
+  <a href="index.html"><button>رجوع</button></a>
+</header>
+
+<main id="orders"></main>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
+import { getFirestore, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCIaWncAaVr4Jezf5rzbCwUza3rtIB1gXw",
+  authDomain: "fastuc-25614.firebaseapp.com",
+  projectId: "fastuc-25614"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const orders = document.getElementById("orders");
+
+onAuthStateChanged(auth, async user => {
+  if (!user) return location.href = "index.html";
+
+  const q = query(collection(db, "orders"), where("userId", "==", user.uid));
+  const snap = await getDocs(q);
+
+  orders.innerHTML = "";
+  snap.forEach(doc => {
+    const o = doc.data();
+    orders.innerHTML += `
+      <div class="package">
+        <p>PUBG ID: ${o.pubgId}</p>
+        <p>الحالة: ${o.status}</p>
+        <a href="payment.html?order=${doc.id}">
+          <button>الدفع</button>
+        </a>
+      </div>
+    `;
+  });
+});
+</script>
+</body>
+</html>

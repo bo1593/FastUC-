@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>الدفع - FastUC</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+<header>
+  <h1>اختر وسيلة الدفع</h1>
+</header>
+
+<div class="package">
+  <button onclick="pay('Vodafone Cash')">Vodafone Cash</button>
+  <button onclick="pay('Instapay')">Instapay</button>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
+import { getFirestore, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCIaWncAaVr4Jezf5rzbCwUza3rtIB1gXw",
+  authDomain: "fastuc-25614.firebaseapp.com",
+  projectId: "fastuc-25614"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const params = new URLSearchParams(window.location.search);
+const orderId = params.get("order");
+
+window.pay = async function(method){
+  await updateDoc(doc(db, "orders", orderId), {
+    status: "waiting_confirmation",
+    paymentMethod: method
+  });
+  alert("تم إرسال طلب الدفع ✔️");
+};
+</script>
+</body>
+</html>

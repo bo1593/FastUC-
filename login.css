@@ -1,0 +1,134 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Montserrat", sans-serif;
+}
+
+body {
+  min-height: 100vh;
+  background: radial-gradient(circle at top, #1b1b1b, #000);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.login_form {
+  width: 100%;
+  max-width: 420px;
+  background: #0f0f0f;
+  padding: 35px;
+  border-radius: 14px;
+  border: 1px solid #2a2a2a;
+  box-shadow: 0 0 30px rgba(255, 215, 0, 0.15);
+  color: #fff;
+}
+
+.login_form h3 {
+  text-align: center;
+  margin-bottom: 25px;
+  font-weight: 700;
+  color: gold;
+}
+
+.login_option a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  padding: 14px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: #fff;
+  font-weight: 600;
+  transition: 0.3s;
+}
+
+.login_option a:hover {
+  border-color: gold;
+  background: #111;
+}
+
+.login_option img {
+  width: 22px;
+}
+
+.separator {
+  text-align: center;
+  margin: 25px 0;
+  position: relative;
+}
+
+.separator span {
+  background: #0f0f0f;
+  padding: 0 12px;
+  position: relative;
+  z-index: 1;
+  color: #aaa;
+}
+
+.separator::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: #333;
+}
+
+.input_box label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.input_box input {
+  width: 100%;
+  height: 52px;
+  border-radius: 8px;
+  border: 1px solid #333;
+  background: #1a1a1a;
+  padding: 0 15px;
+  color: #fff;
+  margin-bottom: 18px;
+}
+
+.input_box input:focus {
+  outline: none;
+  border-color: gold;
+}
+
+button {
+  width: 100%;
+  height: 55px;
+  background: linear-gradient(135deg, gold, #ffb700);
+  border: none;
+  border-radius: 10px;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  color: #000;
+  transition: 0.3s;
+}
+
+button:hover {
+  transform: scale(1.04);
+}
+
+.sign_up {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 14px;
+}
+
+.sign_up a {
+  color: gold;
+  text-decoration: none;
+}
+
+.sign_up a:hover {
+  text-decoration: underline;
+}

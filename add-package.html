@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>إضافة باقة - FastUC</title>
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+<header>
+  <h1>إضافة باقة جديدة</h1>
+  <a href="admin.html"><button>رجوع للوحة التحكم</button></a>
+</header>
+
+<main>
+  <div class="package">
+    <label>اسم الباقة</label>
+    <input type="text" id="packageName" placeholder="مثال: 60 شدات" />
+
+    <label>عدد UC</label>
+    <input type="number" id="uc" placeholder="مثال: 60" />
+
+    <label>البونص</label>
+    <input type="number" id="bonus" placeholder="مثال: 0" />
+
+    <label>السعر (جنيه)</label>
+    <input type="number" id="price" placeholder="مثال: 49" />
+
+    <label>أفضل باقة؟</label>
+    <input type="checkbox" id="best" />
+
+    <button id="addBtn">أضف الباقة</button>
+  </div>
+</main>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
+import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCIaWncAaVr4Jezf5rzbCwUza3rtIB1gXw",
+  authDomain: "fastuc-25614.firebaseapp.com",
+  projectId: "fastuc-25614"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+const ADMIN_UID = "PUT_YOUR_UID_HERE"; // ضع UID بتاعك
+
+onAuthStateChanged(auth, user => {
+  if (!user || user.uid !== ADMIN_UID) {
+    alert("غير مصرح");
+    return location.href = "index.html";
+  }
+});
+
+const addBtn = document.getElementById("addBtn");
+
+addBtn.onclick = async () => {
+  const name = document.getElementById("packageName").value.trim();
+  const uc = parseInt(document.getElementById("uc").value);
+  const bonus = parseInt(document.getElementById("bonus").value);
+  const price = parseInt(document.getElementById("price").value);
+  const best = document.getElementById("best").checked;
+
+  if (!name || isNaN(uc) || isNaN(bonus) || isNaN(price)) {
+    return alert("ادخل كل البيانات بشكل صحيح!");
+  }
+
+  await addDoc(collection(db, "packages"), {
+    name,
+    uc,
+    bonus,
+    price,
+    best
+  });
+
+  alert("تم إضافة الباقة ✔️");
+  document.getElementById("packageName").value = "";
+  document.getElementById("uc").value = "";
+  document.getElementById("bonus").value = "";
+  document.getElementById("price").value = "";
+  document.getElementById("best").checked = false;
+};
+</script>
+</body>
+</html>
