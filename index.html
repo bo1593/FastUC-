@@ -6,31 +6,49 @@
 <title>FastUC - اشحن PUBG</title>
 <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
+
+<!-- Overlay تسجيل الدخول -->
+<div id="loginOverlay">
+  <div class="login_box">
+    <h2>سجل الدخول لتتمكن من الشراء</h2>
+    <button id="loginBtn">تسجيل الدخول بـ Google</button>
+  </div>
+</div>
+
 <header>
   <h1>FastUC - اشحن PUBG</h1>
-  <button id="loginBtn">تسجيل الدخول بـ Google</button>
-  <a href="orders.html"><button>طلباتي</button></a>
-  <a href="admin.html"><button>Admin</button></a>
+  <div class="header_buttons">
+    <a href="orders.html"><button>طلباتي</button></a>
+    <a href="admin.html"><button>Admin</button></a>
+  </div>
 </header>
 
 <main>
   <section id="packagesContainer"></section>
 </main>
 
+<!-- Popup الدفع -->
+<div id="paymentPopup" class="popup">
+  <div class="popup_content">
+    <span class="close">&times;</span>
+    <h3 id="popupName"></h3>
+    <p id="popupDetails"></p>
+    <p id="popupPrice"></p>
+    <button id="popupPayBtn">الدفع الآن</button>
+  </div>
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
 import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
 import { getFirestore, collection, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
 
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCIaWncAaVr4Jezf5rzbCwUza3rtIB1gXw",
   authDomain: "fastuc-25614.firebaseapp.com",
-  projectId: "fastuc-25614",
-  storageBucket: "fastuc-25614.firebasestorage.app",
-  messagingSenderId: "185121162566",
-  appId: "1:185121162566:web:2a83946819f34650acd147"
+  projectId: "fastuc-25614"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -40,20 +58,32 @@ const provider = new GoogleAuthProvider();
 
 const loginBtn = document.getElementById("loginBtn");
 const packagesContainer = document.getElementById("packagesContainer");
+const loginOverlay = document.getElementById("loginOverlay");
+
+// Popup elements
+const paymentPopup = document.getElementById("paymentPopup");
+const popupName = document.getElementById("popupName");
+const popupDetails = document.getElementById("popupDetails");
+const popupPrice = document.getElementById("popupPrice");
+const popupPayBtn = document.getElementById("popupPayBtn");
+const popupClose = document.querySelector(".popup .close");
 
 loginBtn.onclick = () => {
   signInWithPopup(auth, provider)
-    .then(r => alert("أهلاً " + r.user.displayName))
+    .then(r => {
+      alert("أهلاً " + r.user.displayName);
+    })
     .catch(e => alert(e.message));
 };
 
+// Load packages
 async function loadPackages() {
   packagesContainer.innerHTML = "";
   const snap = await getDocs(collection(db, "packages"));
   snap.forEach(doc => {
     const d = doc.data();
     const div = document.createElement("div");
-    div.className = "package";
+    div.className = "package" + (d.best ? " best" : "");
     div.innerHTML = `
       <h3>${d.name}</h3>
       <p>${d.uc} UC + ${d.bonus || 0} Bonus</p>
@@ -64,26 +94,63 @@ async function loadPackages() {
   });
 }
 
+// Buy popup
 window.buy = async (id) => {
   const user = auth.currentUser;
   if (!user) return alert("سجل الدخول أولاً");
 
-  const pubgId = prompt("ادخل PUBG ID");
-  if (!pubgId) return;
+  const snap = await getDocs(collection(db, "packages"));
+  let data;
+  snap.forEach(doc => { if(doc.id === id) data = doc.data(); });
 
-  await addDoc(collection(db, "orders"), {
-    userId: user.uid,
-    packageId: id,
-    pubgId,
-    status: "pending",
-    createdAt: serverTimestamp()
-  });
+  popupName.innerText = data.name;
+  popupDetails.innerText = `${data.uc} UC + ${data.bonus || 0} Bonus`;
+  popupPrice.innerText = `${data.price} ج`;
 
-  alert("تم تسجيل الطلب ✔️");
+  paymentPopup.style.display = "flex";
+
+  popupPayBtn.onclick = async () => {
+    const pubgId = prompt("ادخل PUBG ID");
+    if (!pubgId) return;
+
+    await addDoc(collection(db, "orders"), {
+      userId: user.uid,
+      pubgId,
+      packageId: id,
+      status: "pending",
+      createdAt: serverTimestamp()
+    });
+    alert("تم تسجيل طلبك ✔️");
+    paymentPopup.style.display = "none";
+  };
 };
 
+popupClose.onclick = () => paymentPopup.style.display = "none";
+
+// Hover effect + scroll motion
+packagesContainer.addEventListener("mousemove", e => {
+  const cards = document.querySelectorAll(".package");
+  cards.forEach(card => {
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left - rect.width/2;
+    const y = e.clientY - rect.top - rect.height/2;
+    card.style.transform = `perspective(500px) rotateY(${x/20}deg) rotateX(${-y/20}deg) scale(1.05)`;
+  });
+});
+
+packagesContainer.addEventListener("mouseleave", () => {
+  const cards = document.querySelectorAll(".package");
+  cards.forEach(card => card.style.transform = "perspective(500px) rotateY(0) rotateX(0) scale(1)");
+});
+
+// Auth check
 onAuthStateChanged(auth, user => {
-  if (user) loadPackages();
+  if (user) {
+    loginOverlay.style.display = "none";
+    loadPackages();
+  } else {
+    loginOverlay.style.display = "flex";
+  }
 });
 </script>
 </body>
