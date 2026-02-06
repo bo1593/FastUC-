@@ -6,87 +6,85 @@
 <title>FastUC - اشحن PUBG</title>
 <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 <header>
   <h1>FastUC - اشحن PUBG</h1>
   <button id="loginBtn">تسجيل الدخول بـ Google</button>
+  <a href="orders.html"><button>طلباتي</button></a>
+  <a href="admin.html"><button>Admin</button></a>
 </header>
 
 <main>
-  <section id="packagesContainer">
-    <!-- الباقات هتظهر هنا -->
-  </section>
+  <section id="packagesContainer"></section>
 </main>
 
 <script type="module">
-  // Firebase v12 imports
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-analytics.js";
-  import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
-  import { getFirestore, collection, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
+import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
+import { getFirestore, collection, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
 
-  // Firebase config
-  const firebaseConfig = {
-    apiKey: "AIzaSyCIaWncAaVr4Jezf5rzbCwUza3rtIB1gXw",
-    authDomain: "fastuc-25614.firebaseapp.com",
-    projectId: "fastuc-25614",
-    storageBucket: "fastuc-25614.firebasestorage.app",
-    messagingSenderId: "185121162566",
-    appId: "1:185121162566:web:2a83946819f34650acd147",
-    measurementId: "G-XCY2L13NY0"
-  };
+const firebaseConfig = {
+  apiKey: "AIzaSyCIaWncAaVr4Jezf5rzbCwUza3rtIB1gXw",
+  authDomain: "fastuc-25614.firebaseapp.com",
+  projectId: "fastuc-25614",
+  storageBucket: "fastuc-25614.firebasestorage.app",
+  messagingSenderId: "185121162566",
+  appId: "1:185121162566:web:2a83946819f34650acd147"
+};
 
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
-  const provider = new GoogleAuthProvider();
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const provider = new GoogleAuthProvider();
 
-  const loginBtn = document.getElementById("loginBtn");
-  const packagesContainer = document.getElementById("packagesContainer");
+const loginBtn = document.getElementById("loginBtn");
+const packagesContainer = document.getElementById("packagesContainer");
 
-  loginBtn.addEventListener("click", () => {
-    signInWithPopup(auth, provider)
-      .then(result => {
-        alert(`مرحبا ${result.user.displayName}`);
-        loadPackages();
-      })
-      .catch(err => console.error(err));
+loginBtn.onclick = () => {
+  signInWithPopup(auth, provider)
+    .then(r => alert("أهلاً " + r.user.displayName))
+    .catch(e => alert(e.message));
+};
+
+async function loadPackages() {
+  packagesContainer.innerHTML = "";
+  const snap = await getDocs(collection(db, "packages"));
+  snap.forEach(doc => {
+    const d = doc.data();
+    const div = document.createElement("div");
+    div.className = "package";
+    div.innerHTML = `
+      <h3>${d.name}</h3>
+      <p>${d.uc} UC + ${d.bonus || 0} Bonus</p>
+      <p>${d.price} ج</p>
+      <button onclick="buy('${doc.id}')">اشحن الآن</button>
+    `;
+    packagesContainer.appendChild(div);
+  });
+}
+
+window.buy = async (id) => {
+  const user = auth.currentUser;
+  if (!user) return alert("سجل الدخول أولاً");
+
+  const pubgId = prompt("ادخل PUBG ID");
+  if (!pubgId) return;
+
+  await addDoc(collection(db, "orders"), {
+    userId: user.uid,
+    packageId: id,
+    pubgId,
+    status: "pending",
+    createdAt: serverTimestamp()
   });
 
-  async function loadPackages() {
-    packagesContainer.innerHTML = "";
-    const querySnapshot = await getDocs(collection(db, "packages"));
-    querySnapshot.forEach(doc => {
-      const data = doc.data();
-      const div = document.createElement("div");
-      div.className = "package" + (data.best ? " best" : "");
-      div.innerHTML = `
-        <h3>${data.name}</h3>
-        <p>UC: ${data.uc} + Bonus: ${data.bonus}</p>
-        <p>السعر: ${data.price} ج</p>
-        <button onclick="buyPackage('${doc.id}')">اشحن الآن</button>
-      `;
-      packagesContainer.appendChild(div);
-    });
-  }
+  alert("تم تسجيل الطلب ✔️");
+};
 
-  window.buyPackage = async function(id) {
-    const user = auth.currentUser;
-    if (!user) return alert("سجل الدخول أولاً!");
-    const pubgId = prompt("ادخل PUBG ID");
-    if (!pubgId) return;
-
-    await addDoc(collection(db, "orders"), {
-      userId: user.uid,
-      pubgId,
-      packageId: id,
-      status: "pending",
-      createdAt: serverTimestamp()
-    });
-    alert("تم تسجيل طلبك! سيتم شحنه قريبًا.");
-  };
+onAuthStateChanged(auth, user => {
+  if (user) loadPackages();
+});
 </script>
 </body>
 </html>
