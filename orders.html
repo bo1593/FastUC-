@@ -6,7 +6,6 @@
 <title>طلباتي - FastUC</title>
 <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 <header>
   <h1>طلباتي</h1>
@@ -29,7 +28,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const orders = document.getElementById("orders");
+const ordersDiv = document.getElementById("orders");
 
 onAuthStateChanged(auth, async user => {
   if (!user) return location.href = "index.html";
@@ -37,16 +36,14 @@ onAuthStateChanged(auth, async user => {
   const q = query(collection(db, "orders"), where("userId", "==", user.uid));
   const snap = await getDocs(q);
 
-  orders.innerHTML = "";
+  ordersDiv.innerHTML = "";
   snap.forEach(doc => {
     const o = doc.data();
-    orders.innerHTML += `
+    ordersDiv.innerHTML += `
       <div class="package">
         <p>PUBG ID: ${o.pubgId}</p>
         <p>الحالة: ${o.status}</p>
-        <a href="payment.html?order=${doc.id}">
-          <button>الدفع</button>
-        </a>
+        <a href="payment.html?order=${doc.id}"><button>الدفع</button></a>
       </div>
     `;
   });
